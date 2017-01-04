@@ -158,7 +158,7 @@ EOT;
     private function validateException($exception)
     {
         if (! ($exception instanceof Throwable || $exception instanceof Exception)) {
-            throw new InvalidArgumentException(sprintf(
+            throw new \InvalidArgumentException(sprintf(
                 'Expected an Exception or Throwable; received %s',
                 (is_object($exception) ? get_class($exception) : gettype($exception))
             ));
