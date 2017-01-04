@@ -12,7 +12,7 @@ use Zend\Console\ColorInterface as Color;
 
 class ExceptionHandler
 {
-    /**
+     /**
      * @var Console
      */
     protected $console;
@@ -67,10 +67,12 @@ EOT;
      *
      * On completion, exits with a non-zero status code.
      *
-     * @param Exception $exception
+     * @param Exception|Throwable $exception
      */
-    public function __invoke(Exception $exception)
+    public function __invoke($exception)
     {
+        $this->validateException($exception);
+
         $message = $this->createMessage($exception);
 
         $this->console->writeLine('Application exception: ', Color::RED);
@@ -87,11 +89,13 @@ EOT;
     /**
      * Create the message to emit based on the provided exception and current message template
      *
-     * @param Exception $exception
+     * @param Exception|Throwable $exception
      * @return string
      */
-    public function createMessage(Exception $exception)
+    public function createMessage($exception)
     {
+        $this->validateException($exception);
+
         $previous          = '';
         $previousException = $exception->getPrevious();
         while ($previousException) {
@@ -105,11 +109,11 @@ EOT;
     /**
      * Fill the message template with details of the given exception
      *
-     * @param Exception $exception
+     * @param Exception|Throwable $exception
      * @param false|string $previous If provided, adds the ":previous" template and this value
      * @return string
      */
-    protected function fillTemplate(Exception $exception, $previous = false)
+    protected function fillTemplate($exception, $previous = false)
     {
         $templates = [
             ':className',
@@ -142,5 +146,22 @@ EOT;
         }
 
         return $message;
+    }
+
+    /**
+     * Validate that an exception was received
+     *
+     * @param mixed $exception
+     * @return void
+     * @throws InvalidArgumentException if a non-Throwable, non-Exception was provided.
+     */
+    private function validateException($exception)
+    {
+        if (! ($exception instanceof Throwable || $exception instanceof Exception)) {
+            throw new InvalidArgumentException(sprintf(
+                'Expected an Exception or Throwable; received %s',
+                (is_object($exception) ? get_class($exception) : gettype($exception))
+            ));
+        }
     }
 }
